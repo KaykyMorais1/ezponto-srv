@@ -3,13 +3,16 @@ package com.ezponto.application.funcionario;
 import com.ezponto.domain.conta.Conta;
 import com.ezponto.domain.conta.ContaRepository;
 import com.ezponto.domain.conta.ContaRole;
+import com.ezponto.domain.equipe.EquipeEventoRepository;
 import com.ezponto.domain.evento.Evento;
 import com.ezponto.domain.evento.EventoRepository;
 import com.ezponto.domain.funcionario.Funcionario;
 import com.ezponto.domain.funcionario.FuncionarioRepository;
 import com.ezponto.domain.funcionario.FuncionarioStatus;
+import com.ezponto.domain.ponto.RegistroPontoRepository;
 import com.ezponto.domain.shared.exception.RecursoNaoEncontradoException;
 import com.ezponto.domain.shared.exception.RegraDeNegocioException;
+import com.ezponto.domain.shared.exception.SenhaInvalidaException;
 import com.ezponto.presentation.funcionario.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,6 +29,8 @@ public class FuncionarioServiceImpl implements FuncionarioService {
     private final ContaRepository contaRepository;
     private final EventoRepository eventoRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RegistroPontoRepository registroPontoRepository;
+    private final EquipeEventoRepository equipeEventoRepository;
 
     @Override
     public List<FuncionarioResponse> listarTodos() {
@@ -86,6 +91,50 @@ public class FuncionarioServiceImpl implements FuncionarioService {
         conta.setAtivo(false);
         contaRepository.save(conta);
         funcionarioRepository.save(funcionario);
+    }
+
+    @Override
+    @Transactional
+    public FuncionarioResponse atualizarStatus(Long id, AtualizarStatusFuncionarioRequest request) {
+        Funcionario funcionario = buscarFuncionario(id);
+        funcionario.setStatus(request.status());
+        if (request.status() == FuncionarioStatus.INATIVO) {
+            Conta conta = funcionario.getConta();
+            conta.setAtivo(false);
+            contaRepository.save(conta);
+        }
+        return toResponse(funcionarioRepository.save(funcionario));
+    }
+
+    @Override
+    @Transactional
+    public void alterarSenha(Long id, AlterarSenhaRequest request) {
+        Funcionario funcionario = buscarFuncionario(id);
+        Conta conta = funcionario.getConta();
+
+        if (!passwordEncoder.matches(request.senhaAtual(), conta.getSenhaHash())) {
+            throw new SenhaInvalidaException("Senha atual incorreta.");
+        }
+
+        conta.setSenhaHash(passwordEncoder.encode(request.novaSenha()));
+        contaRepository.save(conta);
+    }
+
+    @Override
+    @Transactional
+    public void deletar(Long id) {
+        Funcionario funcionario = buscarFuncionario(id);
+
+        if (registroPontoRepository.existsByFuncionarioId(id)) {
+            throw new RegraDeNegocioException(
+                "Este funcionário possui registros de ponto e não pode ser excluído. Use a opção de inativar."
+            );
+        }
+
+        equipeEventoRepository.deleteAllByFuncionarioId(id);
+        Conta conta = funcionario.getConta();
+        funcionarioRepository.delete(funcionario);
+        contaRepository.delete(conta);
     }
 
     @Override

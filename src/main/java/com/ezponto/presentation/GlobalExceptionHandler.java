@@ -3,6 +3,8 @@ package com.ezponto.presentation;
 import com.ezponto.domain.shared.exception.AcessoNegadoException;
 import com.ezponto.domain.shared.exception.RegraDeNegocioException;
 import com.ezponto.domain.shared.exception.RecursoNaoEncontradoException;
+import com.ezponto.domain.shared.exception.SenhaInvalidaException;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.validation.FieldError;
@@ -34,6 +36,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAcessoNegado(AcessoNegadoException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new ErrorResponse("ACESSO_NEGADO", ex.getMessage()));
+    }
+
+    @ExceptionHandler(SenhaInvalidaException.class)
+    public ResponseEntity<ErrorResponse> handleSenhaInvalida(SenhaInvalidaException ex) {
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse("SENHA_INVALIDA", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<ErrorResponse> handleExpiredJwt(ExpiredJwtException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse("TOKEN_EXPIRED", "Sessão expirada. Faça login novamente."));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

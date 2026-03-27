@@ -7,6 +7,7 @@ import com.ezponto.domain.evento.EventoRepository;
 import com.ezponto.domain.evento.EventoStatus;
 import com.ezponto.domain.funcionario.Funcionario;
 import com.ezponto.domain.funcionario.FuncionarioRepository;
+import com.ezponto.domain.ponto.RegistroPontoRepository;
 import com.ezponto.domain.shared.exception.RecursoNaoEncontradoException;
 import com.ezponto.domain.shared.exception.RegraDeNegocioException;
 import com.ezponto.presentation.evento.dto.*;
@@ -24,6 +25,7 @@ public class EventoServiceImpl implements EventoService {
     private final EventoRepository eventoRepository;
     private final EquipeEventoRepository equipeEventoRepository;
     private final FuncionarioRepository funcionarioRepository;
+    private final RegistroPontoRepository registroPontoRepository;
 
     @Override
     public List<EventoResponse> listarTodos() {
@@ -88,7 +90,8 @@ public class EventoServiceImpl implements EventoService {
             throw new RegraDeNegocioException("Não é possível deletar evento EM ANDAMENTO");
         }
 
-        equipeEventoRepository.deleteAll(equipeEventoRepository.findByEventoId(id));
+        registroPontoRepository.deleteAllByEventoId(id);
+        equipeEventoRepository.deleteAllByEventoId(id);
         eventoRepository.delete(evento);
     }
 

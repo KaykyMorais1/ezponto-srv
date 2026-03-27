@@ -1,5 +1,6 @@
 package com.ezponto.config.security;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,8 +39,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         final String token = authHeader.substring(7);
 
-        if (!jwtService.tokenValido(token)) {
-            filterChain.doFilter(request, response);
+        try {
+            if (!jwtService.tokenValido(token)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+        } catch (ExpiredJwtException e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"TOKEN_EXPIRED\", \"message\": \"Sessão expirada. Faça login novamente.\"}");
             return;
         }
 

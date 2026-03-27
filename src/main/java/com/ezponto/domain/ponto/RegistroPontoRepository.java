@@ -2,6 +2,7 @@ package com.ezponto.domain.ponto;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -44,4 +45,10 @@ public interface RegistroPontoRepository extends JpaRepository<RegistroPonto, Lo
         @Param("tipo") TipoPonto tipo,
         @Param("inicioDia") OffsetDateTime inicioDia
     );
+
+    boolean existsByFuncionarioId(Long funcionarioId);
+
+    @Modifying
+    @Query("DELETE FROM RegistroPonto r WHERE r.evento.id = :eventoId")
+    void deleteAllByEventoId(@Param("eventoId") Long eventoId);
 }

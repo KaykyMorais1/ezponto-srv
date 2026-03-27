@@ -21,6 +21,9 @@ public class JwtService {
     @Value("${app.jwt.expiration-ms}")
     private long expirationMs;
 
+    @Value("${security.jwt.expiration-hours:8}")
+    private long expirationHours;
+
     private SecretKey getKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
@@ -31,7 +34,7 @@ public class JwtService {
                 .claim("role", conta.getRole().name())
                 .claim("contaId", conta.getId())
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expirationMs))
+                .expiration(new Date(System.currentTimeMillis() + expirationHours * 3600 * 1000))
                 .signWith(getKey())
                 .compact();
     }
@@ -44,6 +47,8 @@ public class JwtService {
         try {
             parsearClaims(token);
             return true;
+        } catch (ExpiredJwtException e) {
+            throw e;
         } catch (JwtException | IllegalArgumentException e) {
             log.warn("Token JWT inválido: {}", e.getMessage());
             return false;

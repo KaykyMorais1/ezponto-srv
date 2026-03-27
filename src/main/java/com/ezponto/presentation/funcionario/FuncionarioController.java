@@ -44,9 +44,26 @@ public class FuncionarioController {
         return ResponseEntity.ok(funcionarioService.atualizar(id, request));
     }
 
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<FuncionarioResponse> atualizarStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody AtualizarStatusFuncionarioRequest request
+    ) {
+        return ResponseEntity.ok(funcionarioService.atualizarStatus(id, request));
+    }
+
+    @PatchMapping("/{id}/senha")
+    public ResponseEntity<Void> alterarSenha(
+            @PathVariable Long id,
+            @Valid @RequestBody AlterarSenhaRequest request
+    ) {
+        funcionarioService.alterarSenha(id, request);
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> desativar(@PathVariable Long id) {
-        funcionarioService.desativar(id);
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        funcionarioService.deletar(id);
         return ResponseEntity.noContent().build();
     }
 

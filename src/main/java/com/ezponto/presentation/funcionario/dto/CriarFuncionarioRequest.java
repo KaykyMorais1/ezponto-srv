@@ -21,6 +21,10 @@ public class CriarFuncionarioRequest {
     private String email;
 
     @NotBlank(message = "Senha é obrigatória")
-    @Size(min = 6, message = "Senha deve ter no mínimo 6 caracteres")
+    @Size(min = 8, message = "Senha deve ter no mínimo 8 caracteres")
+    @Pattern(
+        regexp = "^(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).+$",
+        message = "Senha deve conter ao menos uma maiúscula, um número e um caractere especial"
+    )
     private String senha;
 }
