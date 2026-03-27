@@ -13,6 +13,7 @@ import com.ezponto.presentation.evento.dto.MembroEquipeResponse;
 import com.ezponto.presentation.ponto.dto.EventoAtivoResponse;
 import com.ezponto.presentation.ponto.dto.RegistrarPontoRequest;
 import com.ezponto.presentation.ponto.dto.RegistroPontoResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/ponto")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class PontoController {
 
     private final PontoService pontoService;
