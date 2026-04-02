@@ -67,7 +67,7 @@ public class FuncionarioServiceImpl implements FuncionarioService {
                 .nome(request.getNome())
                 .cpf(request.getCpf())
                 .cargo(request.getCargo())
-                .status(FuncionarioStatus.ATIVO)
+                .status(FuncionarioStatus.DISPONIVEL)
                 .build();
 
         return toResponse(funcionarioRepository.save(funcionario));
@@ -97,12 +97,26 @@ public class FuncionarioServiceImpl implements FuncionarioService {
     @Transactional
     public FuncionarioResponse atualizarStatus(Long id, AtualizarStatusFuncionarioRequest request) {
         Funcionario funcionario = buscarFuncionario(id);
-        funcionario.setStatus(request.status());
-        if (request.status() == FuncionarioStatus.INATIVO) {
-            Conta conta = funcionario.getConta();
-            conta.setAtivo(false);
-            contaRepository.save(conta);
+        FuncionarioStatus novoStatus = request.status();
+
+        boolean isInativando = novoStatus == FuncionarioStatus.INATIVO;
+        boolean isReativando = novoStatus == FuncionarioStatus.DISPONIVEL
+                && funcionario.getStatus() == FuncionarioStatus.INATIVO;
+
+        if (!isInativando && !isReativando) {
+            throw new RegraDeNegocioException(
+                "Transição inválida. Use INATIVO para desativar ou DISPONIVEL para reativar."
+            );
         }
+
+        funcionario.setStatus(novoStatus);
+        Conta conta = funcionario.getConta();
+        if (isInativando) {
+            conta.setAtivo(false);
+        } else {
+            conta.setAtivo(true);
+        }
+        contaRepository.save(conta);
         return toResponse(funcionarioRepository.save(funcionario));
     }
 
