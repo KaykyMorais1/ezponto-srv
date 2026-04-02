@@ -12,4 +12,5 @@ public interface EventoService {
     void deletar(Long id);
     EventoDetalheResponse adicionarMembro(Long eventoId, AdicionarMembroRequest request);
     EventoDetalheResponse removerMembro(Long eventoId, Long funcionarioId);
+    void atualizarEquipe(Long eventoId, AtualizarEquipeRequest request);
 }

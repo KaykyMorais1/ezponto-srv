@@ -155,6 +155,71 @@ public class EventoServiceImpl implements EventoService {
         return toDetalheResponse(buscarEvento(eventoId));
     }
 
+    @Override
+    @Transactional
+    public void atualizarEquipe(Long eventoId, AtualizarEquipeRequest request) {
+        Evento evento = buscarEvento(eventoId);
+
+        if (evento.getStatus() == EventoStatus.ENCERRADO) {
+            throw new RegraDeNegocioException("Não é possível editar a equipe de um evento encerrado.");
+        }
+
+        List<Long> idsNovos = request.funcionarioIds();
+        List<Long> idsAtuais = equipeEventoRepository.findFuncionarioIdsByEventoId(eventoId);
+
+        List<Long> idsRemover = idsAtuais.stream()
+                .filter(id -> !idsNovos.contains(id))
+                .toList();
+
+        List<Long> idsAdicionar = idsNovos.stream()
+                .filter(id -> !idsAtuais.contains(id))
+                .toList();
+
+        if (!idsRemover.isEmpty()) {
+            if (evento.getStatus() == EventoStatus.EM_ANDAMENTO) {
+                idsRemover.forEach(funcionarioId -> {
+                    EquipeEvento membro = equipeEventoRepository
+                            .findByEventoIdAndFuncionarioId(eventoId, funcionarioId)
+                            .orElseThrow();
+                    if (!membro.getDataAdicionado().isAfter(evento.getDataInicio())) {
+                        throw new RegraDeNegocioException(
+                                "Não é possível remover membros que já estavam na equipe no início do evento.");
+                    }
+                });
+            }
+            equipeEventoRepository.deleteByEventoIdAndFuncionarioIdIn(eventoId, idsRemover);
+        }
+
+        if (!idsAdicionar.isEmpty()) {
+            idsAdicionar.forEach(funcionarioId -> {
+                Funcionario funcionario = funcionarioRepository.findById(funcionarioId)
+                        .orElseThrow(() -> new RecursoNaoEncontradoException(
+                                "Funcionário não encontrado: " + funcionarioId));
+
+                if (funcionario.getStatus() == com.ezponto.domain.funcionario.FuncionarioStatus.INATIVO) {
+                    throw new RegraDeNegocioException(
+                            "Funcionário inativo não pode ser adicionado à equipe: " + funcionarioId);
+                }
+
+                if (equipeEventoRepository.existsOverlapForFuncionario(
+                        funcionarioId, evento.getDataInicio(), evento.getDataFim(), eventoId)) {
+                    throw new RegraDeNegocioException(
+                            "Funcionário já está alocado em outro evento no mesmo período: " + funcionarioId);
+                }
+            });
+
+            List<EquipeEvento> novos = idsAdicionar.stream()
+                    .map(funcionarioId -> EquipeEvento.builder()
+                            .evento(evento)
+                            .funcionario(funcionarioRepository.getReferenceById(funcionarioId))
+                            .dataAdicionado(OffsetDateTime.now())
+                            .build())
+                    .toList();
+
+            equipeEventoRepository.saveAll(novos);
+        }
+    }
+
     // --- Helpers ---
 
     private Evento buscarEvento(Long id) {

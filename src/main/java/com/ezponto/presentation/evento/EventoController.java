@@ -65,4 +65,13 @@ public class EventoController {
     ) {
         return ResponseEntity.ok(eventoService.removerMembro(id, funcionarioId));
     }
+
+    @PutMapping("/{id}/equipe")
+    public ResponseEntity<Void> atualizarEquipe(
+            @PathVariable Long id,
+            @Valid @RequestBody AtualizarEquipeRequest request
+    ) {
+        eventoService.atualizarEquipe(id, request);
+        return ResponseEntity.noContent().build();
+    }
 }
