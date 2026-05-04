@@ -74,4 +74,10 @@ public class EventoController {
         eventoService.atualizarEquipe(id, request);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/cancelar")
+    public ResponseEntity<Void> cancelar(@PathVariable Long id) {
+        eventoService.cancelarEvento(id);
+        return ResponseEntity.noContent().build();
+    }
 }

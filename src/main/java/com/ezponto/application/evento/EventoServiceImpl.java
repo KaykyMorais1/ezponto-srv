@@ -63,7 +63,7 @@ public class EventoServiceImpl implements EventoService {
         Evento evento = buscarEvento(id);
         EventoStatus status = evento.getStatus();
 
-        if (status == EventoStatus.EM_ANDAMENTO || status == EventoStatus.ENCERRADO) {
+        if (status == EventoStatus.EM_ANDAMENTO || status == EventoStatus.ENCERRADO || status == EventoStatus.CANCELADO) {
             throw new RegraDeNegocioException(
                     "Não é possível editar nome, datas ou localização de evento " + status.name());
         }
@@ -100,8 +100,9 @@ public class EventoServiceImpl implements EventoService {
     public EventoDetalheResponse adicionarMembro(Long eventoId, AdicionarMembroRequest request) {
         Evento evento = buscarEvento(eventoId);
 
-        if (evento.getStatus() == EventoStatus.ENCERRADO) {
-            throw new RegraDeNegocioException("Não é possível adicionar membros a evento ENCERRADO");
+        EventoStatus statusAdicionar = evento.getStatus();
+        if (statusAdicionar == EventoStatus.ENCERRADO || statusAdicionar == EventoStatus.CANCELADO) {
+            throw new RegraDeNegocioException("Não é possível adicionar membros a evento " + statusAdicionar.name());
         }
 
         if (equipeEventoRepository.existsByEventoIdAndFuncionarioId(eventoId, request.getFuncionarioId())) {
@@ -136,8 +137,9 @@ public class EventoServiceImpl implements EventoService {
     public EventoDetalheResponse removerMembro(Long eventoId, Long funcionarioId) {
         Evento evento = buscarEvento(eventoId);
 
-        if (evento.getStatus() == EventoStatus.ENCERRADO) {
-            throw new RegraDeNegocioException("Não é possível remover membros de evento ENCERRADO");
+        EventoStatus statusRemover = evento.getStatus();
+        if (statusRemover == EventoStatus.ENCERRADO || statusRemover == EventoStatus.CANCELADO) {
+            throw new RegraDeNegocioException("Não é possível remover membros de evento " + statusRemover.name());
         }
 
         EquipeEvento membro = equipeEventoRepository
@@ -160,8 +162,9 @@ public class EventoServiceImpl implements EventoService {
     public void atualizarEquipe(Long eventoId, AtualizarEquipeRequest request) {
         Evento evento = buscarEvento(eventoId);
 
-        if (evento.getStatus() == EventoStatus.ENCERRADO) {
-            throw new RegraDeNegocioException("Não é possível editar a equipe de um evento encerrado.");
+        EventoStatus statusEquipe = evento.getStatus();
+        if (statusEquipe == EventoStatus.ENCERRADO || statusEquipe == EventoStatus.CANCELADO) {
+            throw new RegraDeNegocioException("Não é possível editar a equipe de um evento " + statusEquipe.name());
         }
 
         List<Long> idsNovos = request.funcionarioIds();
@@ -176,17 +179,6 @@ public class EventoServiceImpl implements EventoService {
                 .toList();
 
         if (!idsRemover.isEmpty()) {
-            if (evento.getStatus() == EventoStatus.EM_ANDAMENTO) {
-                idsRemover.forEach(funcionarioId -> {
-                    EquipeEvento membro = equipeEventoRepository
-                            .findByEventoIdAndFuncionarioId(eventoId, funcionarioId)
-                            .orElseThrow();
-                    if (!membro.getDataAdicionado().isAfter(evento.getDataInicio())) {
-                        throw new RegraDeNegocioException(
-                                "Não é possível remover membros que já estavam na equipe no início do evento.");
-                    }
-                });
-            }
             equipeEventoRepository.deleteByEventoIdAndFuncionarioIdIn(eventoId, idsRemover);
         }
 
@@ -218,6 +210,20 @@ public class EventoServiceImpl implements EventoService {
 
             equipeEventoRepository.saveAll(novos);
         }
+    }
+
+    @Override
+    @Transactional
+    public void cancelarEvento(Long eventoId) {
+        Evento evento = buscarEvento(eventoId);
+
+        if (evento.getStatus() != EventoStatus.EM_ANDAMENTO) {
+            throw new RegraDeNegocioException(
+                    "Só é possível cancelar um evento que esteja EM ANDAMENTO.");
+        }
+
+        evento.setCancelado(true);
+        eventoRepository.save(evento);
     }
 
     // --- Helpers ---

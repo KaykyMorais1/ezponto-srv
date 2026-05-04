@@ -27,12 +27,17 @@ public class Evento {
 
     private String endereco;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean cancelado = false;
+
     @Column(nullable = false)
     private Double latitude;
 
     @Column(nullable = false)
     private Double longitude;
 
+    @Builder.Default
     @Column(name = "raio_metros", nullable = false)
     private Integer raioMetros = 100;
 
@@ -46,6 +51,7 @@ public class Evento {
 
     @Transient
     public EventoStatus getStatus() {
+        if (Boolean.TRUE.equals(cancelado)) return EventoStatus.CANCELADO;
         OffsetDateTime agora = OffsetDateTime.now();
         if (agora.isBefore(dataInicio)) return EventoStatus.A_ACONTECER;
         if (agora.isAfter(dataFim))     return EventoStatus.ENCERRADO;
