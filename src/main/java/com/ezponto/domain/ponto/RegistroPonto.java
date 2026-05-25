@@ -29,6 +29,7 @@ public class RegistroPonto {
     @Column(nullable = false)
     private TipoPonto tipo;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private StatusPonto status = StatusPonto.APROVADO;
@@ -42,6 +43,7 @@ public class RegistroPonto {
     @Column(name = "foto_url")
     private String fotoUrl;
 
+    @Builder.Default
     @Column(name = "timestamp_servidor", nullable = false)
     private OffsetDateTime timestampServidor = OffsetDateTime.now();
 
