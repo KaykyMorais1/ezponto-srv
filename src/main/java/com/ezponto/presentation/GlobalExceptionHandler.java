@@ -6,6 +6,7 @@ import com.ezponto.domain.shared.exception.RecursoNaoEncontradoException;
 import com.ezponto.domain.shared.exception.SenhaInvalidaException;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -58,6 +59,16 @@ public class GlobalExceptionHandler {
             erros.put(campo, error.getDefaultMessage());
         });
         return ResponseEntity.badRequest().body(erros);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrity(DataIntegrityViolationException ex) {
+        String causa = ex.getCause() != null ? ex.getCause().getMessage() : "";
+        String mensagem = causa.contains("cpf")
+                ? "CPF já cadastrado."
+                : "Violação de integridade de dados.";
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(new ErrorResponse("DADOS_DUPLICADOS", mensagem));
     }
 
     @ExceptionHandler(Exception.class)

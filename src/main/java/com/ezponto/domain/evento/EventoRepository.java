@@ -23,4 +23,25 @@ public interface EventoRepository extends JpaRepository<Evento, Long> {
         @Param("funcionarioId") Long funcionarioId,
         @Param("agora") OffsetDateTime agora
     );
+
+    @Query("""
+        SELECT e.nome FROM Evento e
+        JOIN EquipeEvento ee ON ee.evento.id = e.id
+        WHERE ee.funcionario.id = :funcionarioId
+        AND e.cancelado = false
+        AND e.dataFim >= :agora
+        ORDER BY e.dataInicio ASC
+    """)
+    Optional<String> findNomeEventoAtivoOuFuturoDoFuncionario(
+        @Param("funcionarioId") Long funcionarioId,
+        @Param("agora") OffsetDateTime agora
+    );
+
+    @Query("""
+        SELECT e FROM Evento e
+        JOIN EquipeEvento ee ON ee.evento.id = e.id
+        WHERE ee.funcionario.id = :funcionarioId
+        ORDER BY e.dataInicio ASC
+    """)
+    List<Evento> findByFuncionarioId(@Param("funcionarioId") Long funcionarioId);
 }

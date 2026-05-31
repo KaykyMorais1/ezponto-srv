@@ -18,9 +18,6 @@ public class JwtService {
     @Value("${app.jwt.secret}")
     private String secret;
 
-    @Value("${app.jwt.expiration-ms}")
-    private long expirationMs;
-
     @Value("${security.jwt.expiration-hours:8}")
     private long expirationHours;
 

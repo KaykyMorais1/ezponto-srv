@@ -16,4 +16,5 @@ public class FuncionarioResponse {
     private String email;
     private FuncionarioStatus status;
     private OffsetDateTime createdAt;
+    private String eventoAtual;
 }

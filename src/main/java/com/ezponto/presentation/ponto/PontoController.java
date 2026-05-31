@@ -1,5 +1,6 @@
 package com.ezponto.presentation.ponto;
 
+import com.ezponto.application.funcionario.FuncionarioService;
 import com.ezponto.application.ponto.PontoService;
 import com.ezponto.domain.conta.Conta;
 import com.ezponto.domain.conta.ContaRepository;
@@ -9,7 +10,9 @@ import com.ezponto.domain.funcionario.Funcionario;
 import com.ezponto.domain.funcionario.FuncionarioRepository;
 import com.ezponto.domain.funcionario.FuncionarioStatus;
 import com.ezponto.domain.shared.exception.RecursoNaoEncontradoException;
+import com.ezponto.presentation.evento.dto.EventoResponse;
 import com.ezponto.presentation.evento.dto.MembroEquipeResponse;
+import com.ezponto.presentation.funcionario.dto.AlterarSenhaRequest;
 import com.ezponto.presentation.ponto.dto.EventoAtivoResponse;
 import com.ezponto.presentation.ponto.dto.RegistrarPontoRequest;
 import com.ezponto.presentation.ponto.dto.RegistroPontoResponse;
@@ -32,6 +35,7 @@ import java.util.List;
 public class PontoController {
 
     private final PontoService pontoService;
+    private final FuncionarioService funcionarioService;
     private final ContaRepository contaRepository;
     private final FuncionarioRepository funcionarioRepository;
     private final EventoRepository eventoRepository;
@@ -87,6 +91,24 @@ public class PontoController {
                     return ResponseEntity.ok(membros);
                 })
                 .orElse(ResponseEntity.ok(List.of()));
+    }
+
+    @GetMapping("/meus-eventos")
+    public ResponseEntity<List<EventoResponse>> meusEventos(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        Long funcionarioId = resolverFuncionarioId(userDetails.getUsername());
+        return ResponseEntity.ok(pontoService.listarMeusEventos(funcionarioId));
+    }
+
+    @PatchMapping("/senha")
+    public ResponseEntity<Void> alterarSenha(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody AlterarSenhaRequest request
+    ) {
+        Long funcionarioId = resolverFuncionarioId(userDetails.getUsername());
+        funcionarioService.alterarSenha(funcionarioId, request);
+        return ResponseEntity.noContent().build();
     }
 
     private Long resolverFuncionarioId(String email) {

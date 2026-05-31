@@ -171,6 +171,9 @@ public class FuncionarioServiceImpl implements FuncionarioService {
     }
 
     private FuncionarioResponse toResponse(Funcionario f) {
+        String eventoAtual = eventoRepository
+                .findNomeEventoAtivoOuFuturoDoFuncionario(f.getId(), java.time.OffsetDateTime.now())
+                .orElse(null);
         return FuncionarioResponse.builder()
                 .id(f.getId())
                 .nome(f.getNome())
@@ -179,6 +182,7 @@ public class FuncionarioServiceImpl implements FuncionarioService {
                 .email(f.getConta().getEmail())
                 .status(f.getStatus())
                 .createdAt(f.getCreatedAt())
+                .eventoAtual(eventoAtual)
                 .build();
     }
 }

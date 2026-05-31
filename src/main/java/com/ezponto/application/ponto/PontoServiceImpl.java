@@ -9,6 +9,7 @@ import com.ezponto.domain.ponto.RegistroPontoRepository;
 import com.ezponto.domain.shared.GeoUtils;
 import com.ezponto.domain.shared.exception.RecursoNaoEncontradoException;
 import com.ezponto.domain.shared.exception.RegraDeNegocioException;
+import com.ezponto.presentation.evento.dto.EventoResponse;
 import com.ezponto.presentation.ponto.dto.EventoAtivoResponse;
 import com.ezponto.presentation.ponto.dto.RegistrarPontoRequest;
 import com.ezponto.presentation.ponto.dto.RegistroPontoResponse;
@@ -90,6 +91,24 @@ public class PontoServiceImpl implements PontoService {
                         .raioMetros(e.getRaioMetros())
                         .build())
                 .orElse(null);
+    }
+
+    @Override
+    public List<EventoResponse> listarMeusEventos(Long funcionarioId) {
+        return eventoRepository.findByFuncionarioId(funcionarioId)
+                .stream()
+                .map(e -> EventoResponse.builder()
+                        .id(e.getId())
+                        .nome(e.getNome())
+                        .dataInicio(e.getDataInicio())
+                        .dataFim(e.getDataFim())
+                        .latitude(e.getLatitude())
+                        .longitude(e.getLongitude())
+                        .raioMetros(e.getRaioMetros())
+                        .endereco(e.getEndereco())
+                        .status(e.getStatus())
+                        .build())
+                .toList();
     }
 
     private RegistroPontoResponse toResponse(RegistroPonto r) {
