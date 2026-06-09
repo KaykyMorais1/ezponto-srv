@@ -46,6 +46,7 @@ public class AuthServiceImpl implements AuthService {
             funcionarioRepository.findByContaId(conta.getId()).ifPresent(f -> {
                 builder.nome(f.getNome());
                 builder.funcionarioId(f.getId());
+                builder.cpf(f.getCpf());
             });
         }
 

@@ -48,6 +48,27 @@ public interface RegistroPontoRepository extends JpaRepository<RegistroPonto, Lo
 
     boolean existsByFuncionarioId(Long funcionarioId);
 
+    @Query("""
+        SELECT COUNT(r) > 0 FROM RegistroPonto r
+        WHERE r.funcionario.id = :funcionarioId
+        AND r.tipo = com.ezponto.domain.ponto.TipoPonto.ENTRADA
+        AND r.timestampServidor >= :inicioDia
+        AND r.timestampServidor < :fimDia
+        AND NOT EXISTS (
+            SELECT 1 FROM RegistroPonto r2
+            WHERE r2.funcionario.id = :funcionarioId
+            AND r2.evento = r.evento
+            AND r2.tipo = com.ezponto.domain.ponto.TipoPonto.SAIDA
+            AND r2.timestampServidor >= :inicioDia
+            AND r2.timestampServidor < :fimDia
+        )
+    """)
+    boolean estaPresente(
+        @Param("funcionarioId") Long funcionarioId,
+        @Param("inicioDia") OffsetDateTime inicioDia,
+        @Param("fimDia") OffsetDateTime fimDia
+    );
+
     @Modifying
     @Query("DELETE FROM RegistroPonto r WHERE r.evento.id = :eventoId")
     void deleteAllByEventoId(@Param("eventoId") Long eventoId);

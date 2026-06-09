@@ -11,4 +11,5 @@ public class LoginResponse {
     private String email;
     private String nome;
     private Long funcionarioId;
+    private String cpf;
 }

@@ -19,6 +19,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -170,17 +172,31 @@ public class FuncionarioServiceImpl implements FuncionarioService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Funcionário não encontrado: " + id));
     }
 
+    private static final ZoneId SP_ZONE = ZoneId.of("America/Sao_Paulo");
+
     private FuncionarioResponse toResponse(Funcionario f) {
         String eventoAtual = eventoRepository
                 .findNomeEventoAtivoOuFuturoDoFuncionario(f.getId(), java.time.OffsetDateTime.now())
                 .orElse(null);
+
+        FuncionarioStatus displayStatus;
+        if (f.getStatus() == FuncionarioStatus.INATIVO) {
+            displayStatus = FuncionarioStatus.INATIVO;
+        } else {
+            LocalDate hoje = LocalDate.now(SP_ZONE);
+            java.time.OffsetDateTime inicioDia = hoje.atStartOfDay(SP_ZONE).toOffsetDateTime();
+            java.time.OffsetDateTime fimDia = hoje.plusDays(1).atStartOfDay(SP_ZONE).toOffsetDateTime();
+            boolean presente = registroPontoRepository.estaPresente(f.getId(), inicioDia, fimDia);
+            displayStatus = presente ? FuncionarioStatus.PRESENTE : FuncionarioStatus.DISPONIVEL;
+        }
+
         return FuncionarioResponse.builder()
                 .id(f.getId())
                 .nome(f.getNome())
                 .cpf(f.getCpf())
                 .cargo(f.getCargo())
                 .email(f.getConta().getEmail())
-                .status(f.getStatus())
+                .status(displayStatus)
                 .createdAt(f.getCreatedAt())
                 .eventoAtual(eventoAtual)
                 .build();
