@@ -199,6 +199,7 @@ public class FuncionarioServiceImpl implements FuncionarioService {
                 .status(displayStatus)
                 .createdAt(f.getCreatedAt())
                 .eventoAtual(eventoAtual)
+                .fotoPerfilUrl(f.getFotoPerfilUrl())
                 .build();
     }
 }

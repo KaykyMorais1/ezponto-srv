@@ -47,6 +47,7 @@ public class AuthServiceImpl implements AuthService {
                 builder.nome(f.getNome());
                 builder.funcionarioId(f.getId());
                 builder.cpf(f.getCpf());
+                builder.fotoPerfilUrl(f.getFotoPerfilUrl());
             });
         }
 

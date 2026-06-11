@@ -1,6 +1,7 @@
 package com.ezponto.presentation.ponto;
 
 import com.ezponto.application.funcionario.FuncionarioService;
+import com.ezponto.application.ponto.FotoUploadService;
 import com.ezponto.application.ponto.PontoService;
 import com.ezponto.domain.conta.Conta;
 import com.ezponto.domain.conta.ContaRepository;
@@ -13,19 +14,24 @@ import com.ezponto.domain.shared.exception.RecursoNaoEncontradoException;
 import com.ezponto.presentation.evento.dto.EventoResponse;
 import com.ezponto.presentation.evento.dto.MembroEquipeResponse;
 import com.ezponto.presentation.funcionario.dto.AlterarSenhaRequest;
+import com.ezponto.presentation.ponto.dto.AtualizarFotoPerfilRequest;
 import com.ezponto.presentation.ponto.dto.EventoAtivoResponse;
+import com.ezponto.presentation.ponto.dto.FotoPerfilResponse;
 import com.ezponto.presentation.ponto.dto.RegistrarPontoRequest;
 import com.ezponto.presentation.ponto.dto.RegistroPontoResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @RestController
@@ -36,6 +42,7 @@ public class PontoController {
 
     private final PontoService pontoService;
     private final FuncionarioService funcionarioService;
+    private final FotoUploadService fotoUploadService;
     private final ContaRepository contaRepository;
     private final FuncionarioRepository funcionarioRepository;
     private final EventoRepository eventoRepository;
@@ -51,12 +58,18 @@ public class PontoController {
                 .body(pontoService.registrar(funcionarioId, request));
     }
 
+    private static final ZoneId SP_ZONE = ZoneId.of("America/Sao_Paulo");
+
     @GetMapping("/historico")
     public ResponseEntity<List<RegistroPontoResponse>> historico(
-            @AuthenticationPrincipal UserDetails userDetails
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim
     ) {
         Long funcionarioId = resolverFuncionarioId(userDetails.getUsername());
-        return ResponseEntity.ok(pontoService.historico(funcionarioId));
+        OffsetDateTime inicio = dataInicio != null ? dataInicio.atStartOfDay(SP_ZONE).toOffsetDateTime() : null;
+        OffsetDateTime fimExclusivo = dataFim != null ? dataFim.plusDays(1).atStartOfDay(SP_ZONE).toOffsetDateTime() : null;
+        return ResponseEntity.ok(pontoService.historico(funcionarioId, inicio, fimExclusivo));
     }
 
     @GetMapping("/evento-ativo")
@@ -99,6 +112,20 @@ public class PontoController {
     ) {
         Long funcionarioId = resolverFuncionarioId(userDetails.getUsername());
         return ResponseEntity.ok(pontoService.listarMeusEventos(funcionarioId));
+    }
+
+    @PatchMapping("/foto")
+    public ResponseEntity<FotoPerfilResponse> atualizarFotoPerfil(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody AtualizarFotoPerfilRequest request
+    ) {
+        Long funcionarioId = resolverFuncionarioId(userDetails.getUsername());
+        Funcionario funcionario = funcionarioRepository.findById(funcionarioId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Funcionário não encontrado"));
+        String url = fotoUploadService.upload(request.getFotoBase64(), funcionarioId);
+        funcionario.setFotoPerfilUrl(url);
+        funcionarioRepository.save(funcionario);
+        return ResponseEntity.ok(FotoPerfilResponse.builder().fotoPerfilUrl(url).build());
     }
 
     @PatchMapping("/senha")

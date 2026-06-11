@@ -38,6 +38,9 @@ public class Funcionario {
     @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;
 
+    @Column(name = "foto_perfil_url")
+    private String fotoPerfilUrl;
+
     @UpdateTimestamp
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;

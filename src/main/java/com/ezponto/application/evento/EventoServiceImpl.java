@@ -63,20 +63,26 @@ public class EventoServiceImpl implements EventoService {
         Evento evento = buscarEvento(id);
         EventoStatus status = evento.getStatus();
 
-        if (status == EventoStatus.EM_ANDAMENTO || status == EventoStatus.ENCERRADO || status == EventoStatus.CANCELADO) {
+        if (status == EventoStatus.ENCERRADO || status == EventoStatus.CANCELADO) {
             throw new RegraDeNegocioException(
-                    "Não é possível editar nome, datas ou localização de evento " + status.name());
+                    "Não é possível editar evento " + status.name());
         }
 
         validarDatas(request.getDataInicio(), request.getDataFim());
 
-        evento.setNome(request.getNome());
-        evento.setDataInicio(request.getDataInicio());
-        evento.setDataFim(request.getDataFim());
-        evento.setEndereco(request.getEndereco());
-        evento.setLatitude(request.getLatitude());
-        evento.setLongitude(request.getLongitude());
-        evento.setRaioMetros(request.getRaioMetros());
+        if (status == EventoStatus.EM_ANDAMENTO) {
+            // Apenas datas podem ser alteradas em evento EM ANDAMENTO
+            evento.setDataInicio(request.getDataInicio());
+            evento.setDataFim(request.getDataFim());
+        } else {
+            evento.setNome(request.getNome());
+            evento.setDataInicio(request.getDataInicio());
+            evento.setDataFim(request.getDataFim());
+            evento.setEndereco(request.getEndereco());
+            evento.setLatitude(request.getLatitude());
+            evento.setLongitude(request.getLongitude());
+            evento.setRaioMetros(request.getRaioMetros());
+        }
 
         return toResponse(eventoRepository.save(evento));
     }

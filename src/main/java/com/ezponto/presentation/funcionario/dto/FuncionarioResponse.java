@@ -17,4 +17,5 @@ public class FuncionarioResponse {
     private FuncionarioStatus status;
     private OffsetDateTime createdAt;
     private String eventoAtual;
+    private String fotoPerfilUrl;
 }

@@ -71,12 +71,11 @@ public class PontoServiceImpl implements PontoService {
     }
 
     @Override
-    public List<RegistroPontoResponse> historico(Long funcionarioId) {
-        return registroPontoRepository
-                .findByFuncionarioIdOrderByTimestampServidorDesc(funcionarioId)
-                .stream()
-                .map(this::toResponse)
-                .toList();
+    public List<RegistroPontoResponse> historico(Long funcionarioId, OffsetDateTime inicio, OffsetDateTime fimExclusivo) {
+        List<RegistroPonto> registros = (inicio != null && fimExclusivo != null)
+                ? registroPontoRepository.findHistoricoEntreDatas(funcionarioId, inicio, fimExclusivo)
+                : registroPontoRepository.findByFuncionarioIdOrderByTimestampServidorDesc(funcionarioId);
+        return registros.stream().map(this::toResponse).toList();
     }
 
     @Override
