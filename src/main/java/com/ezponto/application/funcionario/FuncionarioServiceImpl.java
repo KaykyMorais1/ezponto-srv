@@ -159,7 +159,7 @@ public class FuncionarioServiceImpl implements FuncionarioService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Evento não encontrado: " + eventoId));
 
         return funcionarioRepository
-                .findDisponiveis(eventoId, evento.getDataInicio(), evento.getDataFim())
+                .findDisponiveis(eventoId, evento.getDataInicio(), evento.getDataFim(), FuncionarioStatus.INATIVO)
                 .stream()
                 .map(this::toResponse)
                 .toList();

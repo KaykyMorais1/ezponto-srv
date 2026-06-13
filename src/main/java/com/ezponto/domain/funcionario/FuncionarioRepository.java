@@ -16,7 +16,7 @@ public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> 
 
     @Query("""
         SELECT f FROM Funcionario f
-        WHERE f.status != 'INATIVO'
+        WHERE f.status <> :statusInativo
         AND f.id NOT IN (
             SELECT ee.funcionario.id FROM EquipeEvento ee WHERE ee.evento.id = :eventoId
         )
@@ -24,6 +24,7 @@ public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> 
             SELECT ee.funcionario.id FROM EquipeEvento ee
             JOIN ee.evento e
             WHERE e.id != :eventoId
+            AND e.cancelado = false
             AND e.dataInicio < :dataFim
             AND e.dataFim > :dataInicio
         )
@@ -31,6 +32,7 @@ public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> 
     List<Funcionario> findDisponiveis(
         @Param("eventoId") Long eventoId,
         @Param("dataInicio") OffsetDateTime dataInicio,
-        @Param("dataFim") OffsetDateTime dataFim
+        @Param("dataFim") OffsetDateTime dataFim,
+        @Param("statusInativo") FuncionarioStatus statusInativo
     );
 }
