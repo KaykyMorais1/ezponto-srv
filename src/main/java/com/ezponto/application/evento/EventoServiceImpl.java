@@ -7,6 +7,7 @@ import com.ezponto.domain.evento.EventoRepository;
 import com.ezponto.domain.evento.EventoStatus;
 import com.ezponto.domain.funcionario.Funcionario;
 import com.ezponto.domain.funcionario.FuncionarioRepository;
+import com.ezponto.domain.funcionario.FuncionarioStatus;
 import com.ezponto.domain.ponto.RegistroPontoRepository;
 import com.ezponto.domain.shared.exception.RecursoNaoEncontradoException;
 import com.ezponto.domain.shared.exception.RegraDeNegocioException;
@@ -119,7 +120,7 @@ public class EventoServiceImpl implements EventoService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Funcionário não encontrado"));
 
         List<Funcionario> disponiveis = funcionarioRepository.findDisponiveis(
-                eventoId, evento.getDataInicio(), evento.getDataFim());
+                eventoId, evento.getDataInicio(), evento.getDataFim(), FuncionarioStatus.INATIVO);
         boolean disponivel = disponiveis.stream()
                 .anyMatch(f -> f.getId().equals(funcionario.getId()));
 
