@@ -40,6 +40,7 @@ public interface EquipeEventoRepository extends JpaRepository<EquipeEvento, Long
             SELECT COUNT(e) > 0 FROM EquipeEvento e
             WHERE e.funcionario.id = :funcionarioId
               AND e.evento.id != :eventoId
+              AND e.evento.cancelado = false
               AND e.evento.dataInicio < :dataFim
               AND e.evento.dataFim > :dataInicio
             """)
