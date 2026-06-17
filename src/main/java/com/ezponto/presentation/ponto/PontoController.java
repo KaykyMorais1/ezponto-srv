@@ -99,6 +99,7 @@ public class PontoController {
                                     .cargo(ee.getFuncionario().getCargo())
                                     .dataAdicionado(ee.getDataAdicionado())
                                     .presente(ee.getFuncionario().getStatus() == FuncionarioStatus.PRESENTE)
+                                    .fotoPerfilUrl(ee.getFuncionario().getFotoPerfilUrl())
                                     .build())
                             .toList();
                     return ResponseEntity.ok(membros);
@@ -112,6 +113,18 @@ public class PontoController {
     ) {
         Long funcionarioId = resolverFuncionarioId(userDetails.getUsername());
         return ResponseEntity.ok(pontoService.listarMeusEventos(funcionarioId));
+    }
+
+    @GetMapping("/me/foto")
+    public ResponseEntity<FotoPerfilResponse> minhaFoto(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        Long funcionarioId = resolverFuncionarioId(userDetails.getUsername());
+        Funcionario funcionario = funcionarioRepository.findById(funcionarioId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Funcionário não encontrado"));
+        return ResponseEntity.ok(FotoPerfilResponse.builder()
+                .fotoPerfilUrl(funcionario.getFotoPerfilUrl())
+                .build());
     }
 
     @PatchMapping("/foto")

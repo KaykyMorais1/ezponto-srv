@@ -272,6 +272,7 @@ public class EventoServiceImpl implements EventoService {
                         .cargo(ee.getFuncionario().getCargo())
                         .dataAdicionado(ee.getDataAdicionado())
                         .presente(false)
+                        .fotoPerfilUrl(ee.getFuncionario().getFotoPerfilUrl())
                         .build())
                 .toList();
 

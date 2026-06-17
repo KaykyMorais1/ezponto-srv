@@ -13,4 +13,5 @@ public class MembroEquipeResponse {
     private String cargo;
     private OffsetDateTime dataAdicionado;
     private boolean presente;
+    private String fotoPerfilUrl;
 }
