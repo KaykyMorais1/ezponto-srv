@@ -27,16 +27,16 @@ server:
 app:
   jwt:
     secret: ${JWT_SECRET:f49babc2b103aa57108609f045f66c04589766fd7f1495c72415e561f8596ae7}
+  storage:
+    r2:
+      endpoint: ${APP_STORAGE_R2_ENDPOINT:}
+      access-key: ${APP_STORAGE_R2_ACCESS_KEY:}
+      secret-key: ${APP_STORAGE_R2_SECRET_KEY:}
+      bucket: ${APP_STORAGE_R2_BUCKET:ezponto-fotos}
 
 security:
   jwt:
     expiration-hours: ${JWT_EXPIRATION_HOURS:8}
-  storage:
-    r2:
-      endpoint: ${R2_ENDPOINT:}
-      access-key: ${R2_ACCESS_KEY:}
-      secret-key: ${R2_SECRET_KEY:}
-      bucket: ${R2_BUCKET:ezponto-fotos}
 
 logging:
   level:
