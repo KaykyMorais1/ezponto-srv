@@ -10,6 +10,7 @@ import com.ezponto.domain.shared.GeoUtils;
 import com.ezponto.domain.shared.exception.RecursoNaoEncontradoException;
 import com.ezponto.domain.shared.exception.RegraDeNegocioException;
 import com.ezponto.presentation.evento.dto.EventoResponse;
+import com.ezponto.presentation.ponto.dto.EstadoPontoResponse;
 import com.ezponto.presentation.ponto.dto.EventoAtivoResponse;
 import com.ezponto.presentation.ponto.dto.RegistrarPontoRequest;
 import com.ezponto.presentation.ponto.dto.RegistroPontoResponse;
@@ -18,7 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -108,6 +111,21 @@ public class PontoServiceImpl implements PontoService {
                         .status(e.getStatus())
                         .build())
                 .toList();
+    }
+
+    private static final ZoneId SP_ZONE = ZoneId.of("America/Sao_Paulo");
+
+    @Override
+    public EstadoPontoResponse estadoAtual(Long funcionarioId) {
+        LocalDate hoje = LocalDate.now(SP_ZONE);
+        OffsetDateTime inicioDia = hoje.atStartOfDay(SP_ZONE).toOffsetDateTime();
+        OffsetDateTime fimDia = hoje.plusDays(1).atStartOfDay(SP_ZONE).toOffsetDateTime();
+        return registroPontoRepository
+                .findUltimoRegistroDoDia(funcionarioId, inicioDia, fimDia)
+                .map(r -> EstadoPontoResponse.builder()
+                        .ultimoTipo(r.getTipo().name())
+                        .build())
+                .orElse(EstadoPontoResponse.builder().build());
     }
 
     private RegistroPontoResponse toResponse(RegistroPonto r) {

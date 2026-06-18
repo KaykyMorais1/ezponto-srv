@@ -17,6 +17,7 @@ public interface EventoRepository extends JpaRepository<Evento, Long> {
         SELECT e FROM Evento e
         JOIN EquipeEvento ee ON ee.evento.id = e.id
         WHERE ee.funcionario.id = :funcionarioId
+        AND e.cancelado = false
         AND e.dataInicio <= :agora AND e.dataFim >= :agora
     """)
     Optional<Evento> findEventoAtivoDoFuncionario(

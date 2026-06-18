@@ -1,6 +1,7 @@
 package com.ezponto.application.ponto;
 
 import com.ezponto.presentation.evento.dto.EventoResponse;
+import com.ezponto.presentation.ponto.dto.EstadoPontoResponse;
 import com.ezponto.presentation.ponto.dto.EventoAtivoResponse;
 import com.ezponto.presentation.ponto.dto.RegistrarPontoRequest;
 import com.ezponto.presentation.ponto.dto.RegistroPontoResponse;
@@ -13,4 +14,5 @@ public interface PontoService {
     List<RegistroPontoResponse> historico(Long funcionarioId, OffsetDateTime inicio, OffsetDateTime fimExclusivo);
     EventoAtivoResponse buscarEventoAtivo(Long funcionarioId);
     List<EventoResponse> listarMeusEventos(Long funcionarioId);
+    EstadoPontoResponse estadoAtual(Long funcionarioId);
 }

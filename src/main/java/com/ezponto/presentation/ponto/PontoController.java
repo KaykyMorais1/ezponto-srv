@@ -15,6 +15,7 @@ import com.ezponto.presentation.evento.dto.EventoResponse;
 import com.ezponto.presentation.evento.dto.MembroEquipeResponse;
 import com.ezponto.presentation.funcionario.dto.AlterarSenhaRequest;
 import com.ezponto.presentation.ponto.dto.AtualizarFotoPerfilRequest;
+import com.ezponto.presentation.ponto.dto.EstadoPontoResponse;
 import com.ezponto.presentation.ponto.dto.EventoAtivoResponse;
 import com.ezponto.presentation.ponto.dto.FotoPerfilResponse;
 import com.ezponto.presentation.ponto.dto.RegistrarPontoRequest;
@@ -113,6 +114,14 @@ public class PontoController {
     ) {
         Long funcionarioId = resolverFuncionarioId(userDetails.getUsername());
         return ResponseEntity.ok(pontoService.listarMeusEventos(funcionarioId));
+    }
+
+    @GetMapping("/estado-atual")
+    public ResponseEntity<EstadoPontoResponse> estadoAtual(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        Long funcionarioId = resolverFuncionarioId(userDetails.getUsername());
+        return ResponseEntity.ok(pontoService.estadoAtual(funcionarioId));
     }
 
     @GetMapping("/me/foto")

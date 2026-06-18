@@ -82,6 +82,20 @@ public interface RegistroPontoRepository extends JpaRepository<RegistroPonto, Lo
         @Param("fimExclusivo") OffsetDateTime fimExclusivo
     );
 
+    @Query("""
+        SELECT r FROM RegistroPonto r
+        WHERE r.funcionario.id = :funcionarioId
+        AND r.timestampServidor >= :inicioDia
+        AND r.timestampServidor < :fimDia
+        ORDER BY r.timestampServidor DESC
+        LIMIT 1
+    """)
+    java.util.Optional<RegistroPonto> findUltimoRegistroDoDia(
+        @Param("funcionarioId") Long funcionarioId,
+        @Param("inicioDia") OffsetDateTime inicioDia,
+        @Param("fimDia") OffsetDateTime fimDia
+    );
+
     @Modifying
     @Query("DELETE FROM RegistroPonto r WHERE r.evento.id = :eventoId")
     void deleteAllByEventoId(@Param("eventoId") Long eventoId);
