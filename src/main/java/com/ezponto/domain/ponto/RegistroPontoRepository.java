@@ -15,6 +15,8 @@ public interface RegistroPontoRepository extends JpaRepository<RegistroPonto, Lo
 
     List<RegistroPonto> findByEventoIdOrderByTimestampServidorDesc(Long eventoId);
 
+    List<RegistroPonto> findByFuncionarioIdAndEventoIdOrderByTimestampServidorDesc(Long funcionarioId, Long eventoId);
+
     @Query("""
         SELECT r FROM RegistroPonto r
         JOIN FETCH r.funcionario

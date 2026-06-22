@@ -9,12 +9,13 @@ import com.ezponto.domain.equipe.EquipeEventoRepository;
 import com.ezponto.domain.evento.EventoRepository;
 import com.ezponto.domain.funcionario.Funcionario;
 import com.ezponto.domain.funcionario.FuncionarioRepository;
-import com.ezponto.domain.funcionario.FuncionarioStatus;
+import com.ezponto.domain.ponto.RegistroPontoRepository;
 import com.ezponto.domain.shared.exception.RecursoNaoEncontradoException;
 import com.ezponto.presentation.evento.dto.EventoResponse;
 import com.ezponto.presentation.evento.dto.MembroEquipeResponse;
 import com.ezponto.presentation.funcionario.dto.AlterarSenhaRequest;
 import com.ezponto.presentation.ponto.dto.AtualizarFotoPerfilRequest;
+import com.ezponto.presentation.ponto.dto.EquipeResponse;
 import com.ezponto.presentation.ponto.dto.EstadoPontoResponse;
 import com.ezponto.presentation.ponto.dto.EventoAtivoResponse;
 import com.ezponto.presentation.ponto.dto.FotoPerfilResponse;
@@ -48,6 +49,7 @@ public class PontoController {
     private final FuncionarioRepository funcionarioRepository;
     private final EventoRepository eventoRepository;
     private final EquipeEventoRepository equipeEventoRepository;
+    private final RegistroPontoRepository registroPontoRepository;
 
     @PostMapping
     public ResponseEntity<RegistroPontoResponse> registrar(
@@ -84,28 +86,43 @@ public class PontoController {
     }
 
     @GetMapping("/equipe")
-    public ResponseEntity<List<MembroEquipeResponse>> minhaEquipe(
+    public ResponseEntity<EquipeResponse> minhaEquipe(
             @AuthenticationPrincipal UserDetails userDetails
     ) {
         Long funcionarioId = resolverFuncionarioId(userDetails.getUsername());
         return eventoRepository
                 .findEventoAtivoDoFuncionario(funcionarioId, OffsetDateTime.now())
                 .map(evento -> {
+                    LocalDate hoje = LocalDate.now(SP_ZONE);
+                    OffsetDateTime inicioDia = hoje.atStartOfDay(SP_ZONE).toOffsetDateTime();
+                    OffsetDateTime fimDia = hoje.plusDays(1).atStartOfDay(SP_ZONE).toOffsetDateTime();
+
                     List<MembroEquipeResponse> membros = equipeEventoRepository
                             .findByEventoId(evento.getId())
                             .stream()
-                            .map(ee -> MembroEquipeResponse.builder()
-                                    .funcionarioId(ee.getFuncionario().getId())
-                                    .nome(ee.getFuncionario().getNome())
-                                    .cargo(ee.getFuncionario().getCargo())
-                                    .dataAdicionado(ee.getDataAdicionado())
-                                    .presente(ee.getFuncionario().getStatus() == FuncionarioStatus.PRESENTE)
-                                    .fotoPerfilUrl(ee.getFuncionario().getFotoPerfilUrl())
-                                    .build())
+                            .map(ee -> {
+                                boolean presente = registroPontoRepository
+                                        .estaPresente(ee.getFuncionario().getId(), inicioDia, fimDia);
+                                return MembroEquipeResponse.builder()
+                                        .funcionarioId(ee.getFuncionario().getId())
+                                        .nome(ee.getFuncionario().getNome())
+                                        .cargo(ee.getFuncionario().getCargo())
+                                        .dataAdicionado(ee.getDataAdicionado())
+                                        .presente(presente)
+                                        .fotoPerfilUrl(ee.getFuncionario().getFotoPerfilUrl())
+                                        .build();
+                            })
                             .toList();
-                    return ResponseEntity.ok(membros);
+
+                    return ResponseEntity.ok(EquipeResponse.builder()
+                            .eventoNome(evento.getNome())
+                            .membros(membros)
+                            .build());
                 })
-                .orElse(ResponseEntity.ok(List.of()));
+                .orElse(ResponseEntity.ok(EquipeResponse.builder()
+                        .eventoNome(null)
+                        .membros(List.of())
+                        .build()));
     }
 
     @GetMapping("/meus-eventos")

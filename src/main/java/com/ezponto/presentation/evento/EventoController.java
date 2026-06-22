@@ -1,7 +1,9 @@
 package com.ezponto.presentation.evento;
 
 import com.ezponto.application.evento.EventoService;
+import com.ezponto.domain.ponto.RegistroPontoRepository;
 import com.ezponto.presentation.evento.dto.*;
+import com.ezponto.presentation.ponto.dto.RegistroPontoResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,7 @@ import java.util.List;
 public class EventoController {
 
     private final EventoService eventoService;
+    private final RegistroPontoRepository registroPontoRepository;
 
     @GetMapping
     public ResponseEntity<List<EventoResponse>> listar() {
@@ -79,5 +82,27 @@ public class EventoController {
     public ResponseEntity<Void> cancelar(@PathVariable Long id) {
         eventoService.cancelarEvento(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{eventoId}/equipe/{funcionarioId}/registros")
+    public ResponseEntity<List<RegistroPontoResponse>> registrosMembro(
+            @PathVariable Long eventoId,
+            @PathVariable Long funcionarioId
+    ) {
+        List<RegistroPontoResponse> registros = registroPontoRepository
+                .findByFuncionarioIdAndEventoIdOrderByTimestampServidorDesc(funcionarioId, eventoId)
+                .stream()
+                .map(r -> RegistroPontoResponse.builder()
+                        .id(r.getId())
+                        .tipo(r.getTipo())
+                        .status(r.getStatus())
+                        .latitude(r.getLatitude())
+                        .longitude(r.getLongitude())
+                        .fotoUrl(r.getFotoUrl())
+                        .timestampServidor(r.getTimestampServidor())
+                        .eventoNome(r.getEvento().getNome())
+                        .build())
+                .toList();
+        return ResponseEntity.ok(registros);
     }
 }

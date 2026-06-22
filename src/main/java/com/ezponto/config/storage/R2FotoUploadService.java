@@ -32,6 +32,9 @@ public class R2FotoUploadService implements FotoUploadService {
     @Value("${app.storage.r2.bucket:}")
     private String bucket;
 
+    @Value("${app.storage.r2.public-url:}")
+    private String publicUrl;
+
     @Override
     public String upload(String base64, Long funcionarioId) {
         if (endpoint == null || endpoint.isBlank()) {
@@ -60,7 +63,10 @@ public class R2FotoUploadService implements FotoUploadService {
                             .build(),
                     RequestBody.fromBytes(bytes));
 
-            return endpoint + "/" + bucket + "/" + chave;
+            String baseUrl = (publicUrl != null && !publicUrl.isBlank())
+                    ? publicUrl
+                    : endpoint + "/" + bucket;
+            return baseUrl + "/" + chave;
 
         } catch (Exception e) {
             log.error("Erro ao fazer upload da foto: {}", e.getMessage());

@@ -33,6 +33,7 @@ app:
       access-key: ${APP_STORAGE_R2_ACCESS_KEY:}
       secret-key: ${APP_STORAGE_R2_SECRET_KEY:}
       bucket: ${APP_STORAGE_R2_BUCKET:ezponto-fotos}
+      public-url: ${APP_STORAGE_R2_PUBLIC_URL:}
 
 security:
   jwt:
